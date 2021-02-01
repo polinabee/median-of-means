@@ -14,6 +14,7 @@ class meanEstimator():
         self.N = N  # number of shuffles
         self.epsilon = epsilon  # accuracy param
         self.empmean = sum(self.sample) / self.n
+        self.probs = []
 
     def shuffle(self, seed):
         random_state = seed
@@ -24,13 +25,21 @@ class meanEstimator():
     def median_of_means(self, shuffled=None):
         shuffled = self.sample if shuffled is None else shuffled
         chunks = np.array_split(np.array(shuffled), self.l)
-        return statistics.median([statistics.mean(c) for c in chunks])
+        mom = statistics.median([statistics.mean(c) for c in chunks])
+        p = 0
+        if abs(mom - 0 ) <= self.epsilon:
+            p = 1
+        self.probs.append(p)
+        return mom
 
     def perm_invar_mom(self):
         seeds = np.random.randint(40, size=self.N)
         shuffled_lists = [self.shuffle(s) for s in seeds]
         mom_arr = [self.median_of_means(l) for l in shuffled_lists]
         return statistics.mean(mom_arr)
+
+    def get_p_mom(self):
+        return statistics.mean(self.probs)
 
 def various_n():
     reps = []
